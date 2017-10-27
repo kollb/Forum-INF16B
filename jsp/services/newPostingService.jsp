@@ -4,25 +4,37 @@
     // @author Bernhard Koll, Jan Malchert
     // Service to create a new posting
 
-    int subjectid = Integer.parseInt(request.getParameter("subjectid"));
+    int subjectid = 0;
     String replystring = request.getParameter("replystring");
     User loggedUser = (User) session.getAttribute("user");
 
+    if (loggedUser == null){
+        out.println("{status:\"Error\", message:\"User nicht eingeloggt.\"}");
+        return;
+    }
+
+    try {
+        subjectid = Integer.parseInt(request.getParameter("subjectid"));
+    }
+    catch(Exception e) {}
 
     DAO daoObject = new DAO();
 
     if(subjectid <= 0 || replystring == null || replystring.length() == 0)
     {
-        out.println("{status:\"ERROR\", message:\"Füllen Sie alle Informationen aus.\"}");
+        out.println("{status:\"Error\", message:\"F&uuml;llen Sie alle Informationen aus.\"}");
     }
     else
     {
         Posting newPosting = new Posting(0);
         newPosting.setMessage(replystring);
         newPosting.setSubjectId(subjectid);
-        newPosting.setAuthorId(loggedUser);
+        newPosting.setUserId(loggedUser.getId());
 
         int newPostingId = daoObject.addNewPosting(posting);
-        out.println("{\"status\": \"OK\", \"postingid\": " + newPostingId + "}");
-    }
+        if(newPostingId > 0) {
+            out.println("{\"status\": \"Ok\", \"postingid\": " + newPostingId + "}");
+        } else {
+            out.println("{status:\"Error\", message:\"Interner Fehler.\"}");
+        }    }
 %>
